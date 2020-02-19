@@ -85,4 +85,6 @@ squared_difference = difference**2
 summation = summation + squared_difference
 MSE = summation/n
 print ("MSE: " , MSE[0])
-
+(psnrhvs, psnrhvsm) = PSNRHVSM(im_n[x:x+psize, y:y+psize], images)
+print("psnrhvs: ", psnrhvs)
+print("psnrhvsm: ",psnrhvsm)

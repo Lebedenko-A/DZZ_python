@@ -27,47 +27,43 @@ def PSNRHVSM(ideal_patch, noisy_patch, wstep=8):
     np_size = noisy_patch.shape
     if ip_size != np_size:
         return (0, 0)
-    psnr_estimate = np.zeros((ip_size[0], 1), dtype = np.float)
-    psnrhvsm_estimate = np.zeros((ip_size[0], 1), dtype=np.float)
-
-    for n in range(0, ip_size[0]):
-        patch_i = ideal_patch[n]
-        patch_n = noisy_patch[n]
-        i, j, num = 0, 0, 0
-        while i < (ip_size[1]-wstep):
-            while j < (ip_size[2]-wstep):
-                block_i = patch_i[i:i+8, j:j+8]
-                block_n = patch_n[i:i+8, j:j+8]
-                i_dct = adct2(block_i)
-                n_dct = adct2(block_n)
-                MaskI = maskeff(block_i, i_dct)
-                MaskN = maskeff(block_n, n_dct)
-                if(MaskI > MaskN):
-                    MaskN, MaskI = MaskI, MaskN
-                j = j + wstep
-                for k in range(0, 8):
-                    for l in range(0, 8):
-                        u = abs(i_dct[k, l] - n_dct[k, l])
-                        psnr_estimate[n] = psnr_estimate[n] + (u * CSFCof[k, l])**2
-                        if k != 1 or l != 1:
-                            if u < (MaskI/MaskCof[k, l]):
-                                u = 0
-                            else:
-                                u = u - (MaskI / MaskCof[k, l])
-                        psnrhvsm_estimate[n] = psnrhvsm_estimate[n] + (u*CSFCof[k, l])**2
-                        num = num + 1
-            j, i = 0, i + wstep
-        if num != 0:
-            psnr_estimate[n] = psnr_estimate[n] / num
-            psnrhvsm_estimate[n] = psnrhvsm_estimate[n] / num
-            if psnrhvsm_estimate[n] == 0:
-                psnrhvsm_estimate[n] = 10000
-            else:
-                psnrhvsm_estimate[n] = 10 * log10(255*255/psnrhvsm_estimate[n])
-            if psnr_estimate[n] == 0:
-                psnr_estimate[n] = 10000
-            else:
-                psnr_estimate[n] = 10 * log10(255 * 255 / psnr_estimate[n])
+    psnr_estimate = 0
+    psnrhvsm_estimate = 0
+    i, j, num = 0, 0, 0
+    while i < (ip_size[0]-wstep):
+        while j < (ip_size[1]-wstep):
+            block_i = ideal_patch[i:i+8, j:j+8]
+            block_n = noisy_patch[i:i+8, j:j+8]
+            i_dct = adct2(block_i)
+            n_dct = adct2(block_n)
+            MaskI = maskeff(block_i, i_dct)
+            MaskN = maskeff(block_n, n_dct)
+            if(MaskI > MaskN):
+                MaskN, MaskI = MaskI, MaskN
+            j = j + wstep
+            for k in range(0, 8):
+                for l in range(0, 8):
+                    u = abs(i_dct[k, l] - n_dct[k, l])
+                    psnr_estimate = psnr_estimate + (u * CSFCof[k, l])**2
+                    if k != 1 or l != 1:
+                        if u < (MaskI/MaskCof[k, l]):
+                            u = 0
+                        else:
+                            u = u - (MaskI / MaskCof[k, l])
+                    psnrhvsm_estimate = psnrhvsm_estimate + (u*CSFCof[k, l])**2
+                    num = num + 1
+        j, i = 0, i + wstep
+    if num != 0:
+        psnr_estimate = psnr_estimate / num
+        psnrhvsm_estimate = psnrhvsm_estimate / num
+        if psnrhvsm_estimate == 0:
+            psnrhvsm_estimate = 10000
+        else:
+            psnrhvsm_estimate = 10 * log10(255*255/psnrhvsm_estimate)
+        if psnr_estimate == 0:
+            psnr_estimate = 10000
+        else:
+            psnr_estimate = 10 * log10(255 * 255 / psnr_estimate)
     return (psnr_estimate, psnrhvsm_estimate)
 
 def maskeff(z, zdct):
