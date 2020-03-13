@@ -21,21 +21,23 @@ psize = 512
 x=3846
 y=3484
 
-jp3s = rasterio.open("T42TXQ_20190313T060631_B05.jp2", driver='JP2OpenJPEG')
+jp3s = rasterio.open("/media/rostyslav/4976902B14F960E5/work/DZZ_python/T42TXQ_20190313T060631_B05.jp2", driver='JP2OpenJPEG')
 plot.show(jp3s)
 
 imarr = np.array(jp3s.read())
 print(imarr.shape)
+
 im_n = normalize_image(imarr)
 im = im_n[x:x+psize, y:y+psize]
+plot.show(im_n)
 #start = time.time()
 images = AWGN(im_n[x:x+psize, y:y+psize], dist_type="awgn", sigma=35, mu=0)
-'''
-image_ASCN = ASCN(im_n[x:x+psize, y:y+psize], nsigma=30, gsigma=1.2)
-image_Mult = Mult(im_n[x:x+psize, y:y+psize], looks=3)
-image_Speckle = Speckle(im_n[x:x+psize, y:y+psize], looks=5, gsigma=1.2)
+
+#image_ASCN = ASCN(im_n[x:x+psize, y:y+psize], nsigma=30, gsigma=1.2)
+#image_Mult = Mult(im_n[x:x+psize, y:y+psize], looks=3)
+#image_Speckle = Speckle(im_n[x:x+psize, y:y+psize], looks=5, gsigma=1.2)
 #finish = time.time()
-Image.fromarray(image_Speckle).show()
+#Image.fromarray(image_Speckle).show()
 #print(finish-start)
 
 
@@ -49,10 +51,10 @@ dctmtx = np.array([[0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.35
                    [0.0975, -0.2778, 0.4157, -0.4904, 0.4904, -0.4157, 0.2778, -0.0875]])
 
 #8*8
-#dct = dct2Dnps_add_est(image[x:x+psize, y:y+psize], dctmtx)
-#print(dct)
+dct = dct2Dnps_add_est(images, dctmtx)
+print(dct)
 
-
+'''
 tic = time.time()
 m = median_filter(image_AWGN, 3)
 Image.fromarray(m).show()
@@ -64,7 +66,7 @@ print(toc-tic)
 
 #im = lee_filter(image, 8, np.round(np.var(image[:]), 10))
 #Image.fromarray(im).show()
-'''
+
 
 def psnr(img1, img2):
     mse = np.mean( (img1 - img2) ** 2 )
@@ -88,3 +90,4 @@ print ("MSE: " , MSE[0])
 (psnrhvs, psnrhvsm) = PSNRHVSM(im_n[x:x+psize, y:y+psize], images)
 print("psnrhvs: ", psnrhvs)
 print("psnrhvsm: ",psnrhvsm)
+'''
