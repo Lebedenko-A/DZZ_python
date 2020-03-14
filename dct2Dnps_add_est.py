@@ -3,6 +3,7 @@ import math as m
 
 def dct2Dnps_add_est( nimg, Trans2D ):
     bsize = np.size(Trans2D, 1)
+    b = np.array(nimg.shape)
     s = np.array(nimg.shape) - bsize + 1
     vDCT = np.zeros((bsize**2, s[0]*s[1]))
 

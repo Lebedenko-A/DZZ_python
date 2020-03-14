@@ -51,10 +51,10 @@ dctmtx = np.array([[0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.35
                    [0.0975, -0.2778, 0.4157, -0.4904, 0.4904, -0.4157, 0.2778, -0.0875]])
 
 #8*8
-dct = dct2Dnps_add_est(images, dctmtx)
-print(dct)
+'''dct = dct2Dnps_add_est(images, dctmtx)
+print(dct)'''
 
-'''
+
 tic = time.time()
 m = median_filter(image_AWGN, 3)
 Image.fromarray(m).show()
