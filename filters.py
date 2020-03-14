@@ -3,23 +3,16 @@ from utils.DCT import adct2, idct2
 from utils.matfun import mean2d
 
 
-def dct_filter(image, sigma, bsize = 8, overflow = 0):
+def dct_filter(image, sigma, bsize=8, step=1):
     beta = 2.7
     s = np.shape(image)
     filtered_image = np.zeros(s, dtype=np.float)
-    step = 8
-    threshold = beta*sigma
-    if overflow != 0: step = 1
+    threshold = beta*(sigma)
     for i in range(0, s[0]-bsize, step):
         for j in range(0, s[1]-bsize, step):
-            block = image[i:i+bsize, j:j+bsize]
-            d_block = adct2(block)
-            b_thr = mean2d(d_block)*threshold
-            for k in range(0, bsize):
-                for l in range(0, bsize):
-                    if k != 0 or l != 0:
-                        if d_block[k, l] > b_thr:
-                            d_block[k, l] = 0
-            block = idct2(d_block)
-            filtered_image[i:i+bsize, j:j+bsize] = block
+            im_block = image[i:i+bsize, j:j+bsize]
+            dct_block = adct2(im_block).reshape((bsize*bsize, 1))
+            for z in range(1, bsize*bsize):
+                if abs(dct_block[z]) <= threshold: dct_block[z] = 0
+            filtered_image[i:i+bsize, j:j+bsize] = idct2(dct_block.reshape((bsize, bsize)))
     return filtered_image

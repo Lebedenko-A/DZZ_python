@@ -1,8 +1,7 @@
 import numpy as np
 import math as m
 
-def Frost(image, Damp_fact=1):
-    sz = 5
+def Frost(image, Damp_fact=1, sz = 5):
     ima_fi = np.zeros(image.shape)
     mn = round((sz-1)/2)
     EImg = np.pad(image, mn)

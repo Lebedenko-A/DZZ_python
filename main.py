@@ -12,82 +12,72 @@ from dct2Dnps_add_est import dct2Dnps_add_est
 import matplotlib.pyplot as plt
 import time
 import prepare_patch as pp
-from metrics import PSNRHVSM
+from metrics import PSNRHVSM, PSNR
 from filters import dct_filter
 import math
+from sklearn.metrics import mean_squared_error
 
 
-psize = 512
-x=3846
-y=3484
+padsize = 5
+psize = 512 + (padsize * 2)
+x=512 - padsize
+y=512 - padsize
 
-jp3s = rasterio.open("/media/rostyslav/4976902B14F960E5/work/DZZ_python/T42TXQ_20190313T060631_B05.jp2", driver='JP2OpenJPEG')
-plot.show(jp3s)
+jp3s = rasterio.open("T42TXR_20190313T060631_B05.jp2", driver='JP2OpenJPEG')
 
 imarr = np.array(jp3s.read())
 print(imarr.shape)
 
 im_n = normalize_image(imarr)
 im = im_n[x:x+psize, y:y+psize]
-plot.show(im_n)
-#start = time.time()
-images = AWGN(im_n[x:x+psize, y:y+psize], dist_type="awgn", sigma=35, mu=0)
-
-#image_ASCN = ASCN(im_n[x:x+psize, y:y+psize], nsigma=30, gsigma=1.2)
-#image_Mult = Mult(im_n[x:x+psize, y:y+psize], looks=3)
-#image_Speckle = Speckle(im_n[x:x+psize, y:y+psize], looks=5, gsigma=1.2)
-#finish = time.time()
-#Image.fromarray(image_Speckle).show()
-#print(finish-start)
+ideal_image = im[padsize:-padsize, padsize:-padsize]
 
 
-dctmtx = np.array([[0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536, 0.3536],
-                   [0.4904, 0.4157, 0.2778, 0.0975, -0.0975, -0.2778, -0.4157, -0.4904],
-                   [0.4619, 0.1913, -0.1913, -0.4619, -0.4619, -0.1913, 0.1913, 0.4619],
-                   [0.4157, -0.0975, -0.4904, -0.2778, 0.2778, 0.4904, 0.0975, 0.4157],
-                   [0.3536, -0.3536, -0.3536, 0.3536, 0.3536, -0.3536, -0.3536, 0.3536],
-                   [0.2778, -0.4904, 0.0975, 0.4175, -0.4157, -0.0975, 0.4904, -0.2778],
-                   [0.1913, -0.4619, 0.4619, -0.1913, -0.1913, 0.4619, -0.4619, 0.1913],
-                   [0.0975, -0.2778, 0.4157, -0.4904, 0.4904, -0.4157, 0.2778, -0.0875]])
+result = dict()
 
-#8*8
-'''dct = dct2Dnps_add_est(images, dctmtx)
-print(dct)'''
+noises = [5]
+windowses = [3, 5]
 
+for i in noises:
+    noised_image = AWGN(im, dist_type="awgn", sigma=i, mu=0)
+    for window_s in windowses:
+        print("Median filter " + str(window_s))
+        start = time.time()
+        median_image = median_filter(noised_image, 9)
+        finish = time.time()
+        filtered_image = median_image[padsize:-padsize, padsize:-padsize]
+        psnrhvs = PSNRHVSM(ideal_image, filtered_image)
+        mse = mean_squared_error(ideal_image, filtered_image)
+        result["Median " + str(i) + " " + str(window_s)] = [mse, PSNR(ideal_image, filtered_image, mse), psnrhvs[0], psnrhvs[1], finish - start]
 
-tic = time.time()
-m = median_filter(image_AWGN, 3)
-Image.fromarray(m).show()
-toc = time.time()
-print(toc-tic)
+    for window_s in windowses:
+        print("Lee filter " + str(window_s))
+        start = time.time()
+        li_image = lee_filter(noised_image, 9)
+        finish = time.time()
+        filtered_image = li_image[padsize:-padsize, padsize:-padsize]
+        psnrhvs = PSNRHVSM(ideal_image, filtered_image)
+        mse = mean_squared_error(ideal_image, filtered_image)
+        result["Lee " + str(i) + " " + str(window_s)] = [mse, PSNR(ideal_image, filtered_image, mse), psnrhvs[0],
+                                                       psnrhvs[1], finish - start]
 
-#f = Frost(image, 1)
-#Image.fromarray(f).show()
+    for window_s in windowses:
+        print("Frost filter " + str(window_s))
+        start = time.time()
+        frost_image = Frost(noised_image, 9)
+        finish = time.time()
+        filtered_image = frost_image[padsize:-padsize, padsize:-padsize]
+        psnrhvs = PSNRHVSM(ideal_image, filtered_image)
+        mse = mean_squared_error(ideal_image, filtered_image)
+        result["Frost " + str(i) + " " + str(window_s)] = [mse, PSNR(ideal_image, filtered_image, mse), psnrhvs[0], psnrhvs[1], finish - start]
 
-#im = lee_filter(image, 8, np.round(np.var(image[:]), 10))
-#Image.fromarray(im).show()
+    print("DCT filt")
+    start = time.time()
+    dct_image = dct_filter(noised_image, i)
+    finish = time.time()
+    filtered_image = dct_image[padsize:-padsize, padsize:-padsize]
+    psnrhvs = PSNRHVSM(ideal_image, filtered_image)
+    mse = mean_squared_error(ideal_image, filtered_image)
+    result["Median " + str(i) + " " + str(8)] = [mse, PSNR(ideal_image, filtered_image, mse), psnrhvs[0], psnrhvs[1], finish - start]
 
-
-def psnr(img1, img2):
-    mse = np.mean( (img1 - img2) ** 2 )
-    if mse == 0:
-     return 100
-    PIXEL_MAX = 255.0
-    return 20 * math.log10(PIXEL_MAX / math.sqrt(mse))
-
-d=psnr(im_n[x:x+psize, y:y+psize],images)
-print("PSNR: ", d)
-
-summation = 0
-n = im.shape
-for i in range (0, n[0]):
-    for j in range(0, n[1]):
-      difference = im[i, j] - images[i, j]
-squared_difference = difference**2
-summation = summation + squared_difference
-MSE = summation/n
-print ("MSE: " , MSE[0])
-(psnrhvs, psnrhvsm) = PSNRHVSM(im_n[x:x+psize, y:y+psize], images)
-print("psnrhvs: ", psnrhvs)
-print("psnrhvsm: ",psnrhvsm)
-'''
+print(result)
