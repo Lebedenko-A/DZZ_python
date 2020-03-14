@@ -17,6 +17,7 @@ from filters import dct_filter
 import math
 from sklearn.metrics import mean_squared_error
 
+from utils.log_train_info import create_docx
 
 padsize = 5
 psize = 512 + (padsize * 2)
@@ -80,4 +81,4 @@ for i in noises:
     mse = mean_squared_error(ideal_image, filtered_image)
     result["Median " + str(i) + " " + str(8)] = [mse, PSNR(ideal_image, filtered_image, mse), psnrhvs[0], psnrhvs[1], finish - start]
 
-print(result)
+create_docx(result, "CPU/metrics_cpuT42TXR_20190313T060631_B05.csv", "GPU/metrics_gpuT42TXR_20190313T060631_B05.csv", "T42TXR_20190313T060631_B05")
