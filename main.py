@@ -36,8 +36,8 @@ ideal_image = im[padsize:-padsize, padsize:-padsize]
 
 result = dict()
 
-noises = [5]
-windowses = [3, 5]
+noises = [5, 10, 15, 20, 25]
+windowses = [3, 5, 7, 9]
 
 
 for i in noises:
