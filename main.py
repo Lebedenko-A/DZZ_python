@@ -24,7 +24,7 @@ psize = 512 + (padsize * 2)
 x=512 - padsize
 y=512 - padsize
 
-jp3s = rasterio.open("T42TXR_20190313T060631_B05.jp2", driver='JP2OpenJPEG')
+jp3s = rasterio.open("T42TXQ_20190313T060631_B05.jp2", driver='JP2OpenJPEG')
 
 imarr = np.array(jp3s.read())
 print(imarr.shape)
@@ -83,4 +83,4 @@ for i in noises:
     mse = mean_squared_error(ideal_image, filtered_image)
     result["Median " + str(i) + " " + str(8)] = [mse, PSNR(ideal_image, filtered_image, mse), psnrhvs[0], psnrhvs[1], finish - start]
 
-create_docx(result, "CPU/metrics_cpuT42TXR_20190313T060631_B05.csv", "GPU/metrics_gpuT42TXR_20190313T060631_B05.csv", "T42TXR_20190313T060631_B05")
+create_docx(result, "CPU/metrics_cpuT42TXQ_20190313T060631_B05.csv", "GPU/metrics_gpuT42TXQ_20190313T060631_B05.csv", "T42TXQ_20190313T060631_B05")

@@ -30,7 +30,7 @@ def barplot(data, labels = ["CPU", "GPU", "Python"]):
             for i, window in enumerate(data[key]):
                 plt.bar(8 - width/3, data[key][window][0], width/3, label="CPU", color="blue")
                 plt.bar(8, data[key][window][1], width/3, label="GPU", color="green")
-                plt.bar(8, data[key][window][2], width/3, label="Python", color="red")
+                plt.bar(8 + width/3, data[key][window][2], width/3, label="Python", color="red")
                 if i == 0: plt.legend(loc=0)
                 #plt.bar(data[key][window][0])
             plt.xlabel("Window size")
@@ -61,9 +61,11 @@ def create_docx(result_log, cpu_filename, gpu_filename, filename=""):
 
     document.add_heading("Metric Log Image " + filename, 0)
 
-    csv_log = open('all_csv_log.csv', 'w', newline='')
+    csv_log = open('all_csv_log' + timenow + '.csv', 'w', newline='')
     writer_csv_log = csv.writer(csv_log)
     writer_csv_log.writerow(["Filter", "Noise level", "Window size", " ", " ", "CPU", " ", " ", "GPU", " ", " ", " ", "Python", " "])
+    writer_csv_log.writerow(
+        [" ", " ", " ", "MSE", "PSNR", "PSNRHVS", "PSNRHVSM", "MSE", "PSNR", "PSNRHVS", "PSNRHVSM", "MSE", "PSNR", "PSNRHVS", "PSNRHVSM"])
 
     table_top = ["Filter name", "Window size", "CPU (C++) TIME", "GPU (CUDA) TIME", "Python (numpy) TIME"]
     table = document.add_table(rows=1, cols=len(table_top))
@@ -75,23 +77,25 @@ def create_docx(result_log, cpu_filename, gpu_filename, filename=""):
     cout_of_row = 0
     for key_cpu, key_gpu, key_python in zip(log_cpu, log_gpu, result_log):
         first_3 = parse_filt_noise_window(key_cpu)
-        if data4plot.get(first_3[0]) == None: data4plot[first_3[0]] = dict()
-        if data4plot[first_3[0]].get(first_3[2]) == None: data4plot[first_3[0]][first_3[2]] = []
-        row = table.add_row().cells
+        if cout_of_row < 13:
+            if data4plot.get(first_3[0]) == None: data4plot[first_3[0]] = dict()
+            if data4plot[first_3[0]].get(first_3[2]) == None: data4plot[first_3[0]][first_3[2]] = []
+            row = table.add_row().cells
 
-        row[0].text = first_3[0]
-        row[1].text = first_3[2]
-        row[2].text = log_cpu[key_cpu][-1]
-        data4plot[first_3[0]][first_3[2]].append(float(log_cpu[key_cpu][-1]))
-        row[3].text = log_gpu[key_gpu][-1]
-        data4plot[first_3[0]][first_3[2]].append(float(log_gpu[key_gpu][-1]))
-        row[4].text = result_log[key_python][-1]
-        data4plot[first_3[0]][first_3[2]].append(float(result_log[key_python][-1]))
+            row[0].text = first_3[0]
+            row[1].text = first_3[2]
+            row[2].text = log_cpu[key_cpu][-1]
+            data4plot[first_3[0]][first_3[2]].append(float(log_cpu[key_cpu][-1]))
+            row[3].text = log_gpu[key_gpu][-1]
+            data4plot[first_3[0]][first_3[2]].append(float(log_gpu[key_gpu][-1]))
+            row[4].text = str(result_log[key_python][-1])
+            data4plot[first_3[0]][first_3[2]].append(float(result_log[key_python][-1]))
 
         writer_csv_log.writerow(first_3 + log_cpu[key_cpu][:-1] + log_gpu[key_gpu][:-1] + result_log[key_python][:-1])
 
         cout_of_row += 1
-        if cout_of_row == 13: break
+
+
     csv_log.close()
     barplot(data4plot)
     document.add_picture('barMedian.png', height=Inches(4))
