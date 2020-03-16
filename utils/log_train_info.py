@@ -10,20 +10,34 @@ def parse_filt_noise_window(str):
 
 def barplot(data, labels = ["CPU", "GPU", "Python"]):
     width = 1.5
-    x_cord = np.array([3, 5, 7, 9])
+    x_cord = np.array([3, 5, 7, 9, 11, 15])
     for key in data:
-        plt.figure()
-        for i, window in enumerate(data[key]):
-            plt.bar(x_cord[i] - width/3, data[key][window][0], width/3, label="CPU", color="blue")
-            plt.bar(x_cord[i], data[key][window][1], width/3, label="GPU", color="green")
-            plt.bar(x_cord[i] + width / 3, data[key][window][2], width/3, label="Python", color="red")
-            #plt.bar(data[key][window][0])
-        plt.legend(loc=0)
-        plt.xlabel("Window size")
-        plt.ylabel("Time, s")
-        plt.title(str(key))
-        plt.savefig("bar" + str(key) + ".png")
-        plt.show()
+        if key != "DCTbased":
+            plt.figure()
+            for i, window in enumerate(data[key]):
+                plt.bar(x_cord[i] - width/3, data[key][window][0], width/3, label="CPU", color="blue")
+                plt.bar(x_cord[i], data[key][window][1], width/3, label="GPU", color="green")
+                plt.bar(x_cord[i] + width / 3, data[key][window][2], width/3, label="Python", color="red")
+                #plt.bar(data[key][window][0])
+            plt.legend(loc=0)
+            plt.xlabel("Window size")
+            plt.ylabel("Time, s")
+            plt.title(str(key))
+            plt.savefig("bar" + str(key) + ".png")
+            plt.show()
+        else:
+            plt.figure()
+            for i, window in enumerate(data[key]):
+                plt.bar(8 - width / 3, data[key][window][0], width / 3, label="CPU", color="blue")
+                plt.bar(8, data[key][window][1], width / 3, label="GPU", color="green")
+                plt.bar(8 + width / 3, data[key][window][2], width / 3, label="Python", color="red")
+                # plt.bar(data[key][window][0])
+            plt.legend(loc=0)
+            plt.xlabel("Window size")
+            plt.ylabel("Time, s")
+            plt.title(str(key))
+            plt.savefig("bar" + str(key) + ".png")
+            plt.show()
 
 
 def load_csv_to_dict(filename):
@@ -73,7 +87,7 @@ def create_docx(result_log, cpu_filename, gpu_filename, filename=""):
         data4plot[first_3[0]][first_3[2]].append(float(log_cpu[key_cpu][-1]))
         row[3].text = log_gpu[key_gpu][-1]
         data4plot[first_3[0]][first_3[2]].append(float(log_gpu[key_gpu][-1]))
-        row[4].text = result_log[key_python][-1]
+        row[4].text = str(result_log[key_python][-1])
         data4plot[first_3[0]][first_3[2]].append(float(result_log[key_python][-1]))
 
         cout_of_row += 1
@@ -82,5 +96,5 @@ def create_docx(result_log, cpu_filename, gpu_filename, filename=""):
     document.add_picture('barMedian.png', height=Inches(4))
     document.add_picture('barLi.png', height=Inches(4))
     document.add_picture('barFrost.png', height=Inches(4))
-    document.add_picture('barDCT_based.png', height=Inches(4))
+    #document.add_picture('barDCT_based.png', height=Inches(4))
     document.save("test" + timenow + ".docx")
