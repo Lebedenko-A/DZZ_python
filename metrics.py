@@ -23,6 +23,15 @@ MaskCof = np.array([
         [0.019290, 0.011815, 0.011080, 0.010412, 0.007972, 0.010000, 0.009426, 0.010203]
 ])
 
+def MSE(imQ, imP):
+    s = imQ.shape
+    MSE_res = float(0)
+    for i in range(0, s[0]):
+        for j in range(0, s[1]):
+            MSE_res += pow((float(imQ[i, j]) - float(imP[i, j])), 2)
+
+    return MSE_res/(s[0] * s[1])
+
 def PSNR(ideal_image, noisy_image, mse):
     return 10*log10(pow(255, 2)/mse)
 

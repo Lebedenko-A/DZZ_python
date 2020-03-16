@@ -1,18 +1,24 @@
 from scipy.ndimage.filters import uniform_filter
 from scipy.ndimage.measurements import variance
+import numpy as np
 
+def local_var(block, mean):
+    bl = block.reshape((block.shape[0] * block.shape[1], 1))
+    var = float(0)
+    for i in bl:
+        var += pow(i - mean, 2)
 
-def lee_filter(band, window, var_noise=0.25):
-    # band: SAR data to be despeckled (already reshaped into image dimensions)
-    # window: descpeckling filter window (tuple)
-    # default noise variance = 0.25
-    # assumes noise mean = 0
+    return var/bl.shape[0]
 
-    mean_window = uniform_filter(band, (window, window))
-    mean_sqr_window = uniform_filter(band ** 2, (window, window))
-    var_window = mean_sqr_window - mean_window ** 2
-
-    over_variance = variance(band)
-    weights = var_window / (var_window + over_variance)
-    band_filtered = mean_window + weights * (band - mean_window)
-    return band_filtered
+def lee_filter(band, window, var_noise):
+    s = np.shape(band)
+    border = int(window/2)
+    for i in range(border, s[0] - border):
+        for j in range(border, s[1] - border):
+            block = band[i-border:i+border+1, j-border:j+border+1]
+            LM = np.mean(block, dtype=np.float64)
+            LV = np.var(block, dtype=np.float64)
+            K = LV/(LV + var_noise)
+            pixel = np.uint8(LM + (K * (np.float64(band[i, j]) - LM)))
+            band[i, j] = pixel
+    return band

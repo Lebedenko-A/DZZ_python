@@ -10,20 +10,34 @@ def parse_filt_noise_window(str):
 
 def barplot(data, labels = ["CPU", "GPU", "Python"]):
     width = 1.5
-    x_cord = np.array([3, 5, 7, 9])
+    x_cord = np.array([3, 5, 7, 9, 11, 15])
     for key in data:
-        plt.figure()
-        for i, window in enumerate(data[key]):
-            plt.bar(x_cord[i] - width/3, data[key][window][0], width/3, label="CPU", color="blue")
-            plt.bar(x_cord[i], data[key][window][1], width/3, label="GPU", color="green")
-            plt.bar(x_cord[i] + width / 3, data[key][window][2], width/3, label="Python", color="red")
-            #plt.bar(data[key][window][0])
-        plt.legend(loc=0)
-        plt.xlabel("Window size")
-        plt.ylabel("Time, s")
-        plt.title(str(key))
-        plt.savefig("bar" + str(key) + ".png")
-        plt.show()
+        if key != "DCTbased":
+            plt.figure()
+            for i, window in enumerate(data[key]):
+                plt.bar(x_cord[i] - width/3, data[key][window][0], width/3, label="CPU", color="blue")
+                plt.bar(x_cord[i], data[key][window][1], width/3, label="GPU", color="green")
+                plt.bar(x_cord[i] + width / 3, data[key][window][2], width/3, label="Python", color="red")
+                if i == 0: plt.legend(loc=0)
+                #plt.bar(data[key][window][0])
+            plt.xlabel("Window size")
+            plt.ylabel("Time, s")
+            plt.title(str(key))
+            plt.savefig("bar" + str(key) + ".png")
+            plt.show()
+        else:
+            plt.figure()
+            for i, window in enumerate(data[key]):
+                plt.bar(8 - width/3, data[key][window][0], width/3, label="CPU", color="blue")
+                plt.bar(8, data[key][window][1], width/3, label="GPU", color="green")
+                plt.bar(8, data[key][window][2], width/3, label="Python", color="red")
+                if i == 0: plt.legend(loc=0)
+                #plt.bar(data[key][window][0])
+            plt.xlabel("Window size")
+            plt.ylabel("Time, s")
+            plt.title(str(key))
+            plt.savefig("bar" + str(key) + ".png")
+            plt.show()
 
 
 def load_csv_to_dict(filename):
@@ -47,18 +61,16 @@ def create_docx(result_log, cpu_filename, gpu_filename, filename=""):
 
     document.add_heading("Metric Log Image " + filename, 0)
 
-    logdata_history = []
+    csv_log = open('all_csv_log.csv', 'w', newline='')
+    writer_csv_log = csv.writer(csv_log)
+    writer_csv_log.writerow(["Filter", "Noise level", "Window size", " ", " ", "CPU", " ", " ", "GPU", " ", " ", " ", "Python", " "])
 
     table_top = ["Filter name", "Window size", "CPU (C++) TIME", "GPU (CUDA) TIME", "Python (numpy) TIME"]
     table = document.add_table(rows=1, cols=len(table_top))
     for i, t in enumerate(table_top):
         table.rows[0].cells[i].text = t
 
-    '''table_top_2 = ["", "", "", "MSE", "PSNR", "PSNRHVS", "PSNRHVSM", "TIME", "MSE", "PSNR", "PSNRHVS", "PSNRHVSM", "TIME", "MSE", "PSNR", "PSNRHVS", "PSNRHVSM", "TIME"]
-    table = document.add_table(rows=1, cols=len(table_top_2))
-    for i, t in enumerate(table_top_2):
-        table.rows[0].cells[i].text = t
-'''
+
     data4plot = dict()
     cout_of_row = 0
     for key_cpu, key_gpu, key_python in zip(log_cpu, log_gpu, result_log):
@@ -76,11 +88,14 @@ def create_docx(result_log, cpu_filename, gpu_filename, filename=""):
         row[4].text = result_log[key_python][-1]
         data4plot[first_3[0]][first_3[2]].append(float(result_log[key_python][-1]))
 
+        writer_csv_log.writerow(first_3 + log_cpu[key_cpu][:-1] + log_gpu[key_gpu][:-1] + result_log[key_python][:-1])
+
         cout_of_row += 1
         if cout_of_row == 13: break
+    csv_log.close()
     barplot(data4plot)
     document.add_picture('barMedian.png', height=Inches(4))
     document.add_picture('barLi.png', height=Inches(4))
     document.add_picture('barFrost.png', height=Inches(4))
-    document.add_picture('barDCT_based.png', height=Inches(4))
+    document.add_picture('barDCTbased.png', height=Inches(4))
     document.save("test" + timenow + ".docx")

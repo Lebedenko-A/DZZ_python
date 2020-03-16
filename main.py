@@ -12,7 +12,7 @@ from dct2Dnps_add_est import dct2Dnps_add_est
 import matplotlib.pyplot as plt
 import time
 import prepare_patch as pp
-from metrics import PSNRHVSM, PSNR
+from metrics import PSNRHVSM, PSNR, MSE
 from filters import dct_filter
 import math
 from sklearn.metrics import mean_squared_error
@@ -39,8 +39,10 @@ result = dict()
 noises = [5]
 windowses = [3, 5]
 
+
 for i in noises:
-    noised_image = AWGN(im, dist_type="awgn", sigma=i, mu=0)
+    noised_image = AWGN(im, sigma=i, mu=0)
+
     for window_s in windowses:
         print("Median filter " + str(window_s))
         start = time.time()
@@ -54,7 +56,7 @@ for i in noises:
     for window_s in windowses:
         print("Lee filter " + str(window_s))
         start = time.time()
-        li_image = lee_filter(noised_image, 9)
+        li_image = lee_filter(noised_image, 9, i*i)
         finish = time.time()
         filtered_image = li_image[padsize:-padsize, padsize:-padsize]
         psnrhvs = PSNRHVSM(ideal_image, filtered_image)

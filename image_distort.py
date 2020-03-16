@@ -2,12 +2,11 @@ import numpy as np
 import math as m
 from scipy.stats import rayleigh
 
-def AWGN(image, dist_type="awgn", sigma=0, mu=0):
+def AWGN(image, sigma=0, mu=0):
     im_shape = image.shape
-    if(dist_type == "awgn"):
-        noise = sigma * (np.random.randn(im_shape[0], im_shape[1]) + mu)
-        nimg = image + noise
-        return nimg.astype(np.uint8)
+    noise = np.random.normal(mu, sigma, im_shape)
+    noised = np.ndarray.astype(image, np.float) + noise
+    return noised.astype(np.uint8)
 
 
 def ascn2D_fft_gen(AWGN, gsigma):
